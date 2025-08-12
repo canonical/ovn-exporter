@@ -1,6 +1,8 @@
 # Package directory
 PKG_DIR := ./ovnexporter
 
+ALL_TESTS := $(wildcard tests/*.bats)
+
 ##@ Development
 
 .PHONY: build run run-debug fmt vet lint
@@ -21,7 +23,7 @@ lint: fmt vet ## Run all linters (format and vet)
 
 ##@ Testing
 
-.PHONY: test test-coverage mocks
+.PHONY: test test-coverage mocks check-system $(ALL_TESTS)
 
 test: ## Run all tests
 		cd $(PKG_DIR) && go test ./...
@@ -32,6 +34,12 @@ test-coverage: ## Run tests with coverage report
 
 mocks: ## Generate mock files using mockery
 		mockery
+
+$(ALL_TESTS): build
+	echo "Running functional test $@";  \
+	$(CURDIR)/.bats/bats-core/bin/bats $@
+
+check-system: $(ALL_TESTS)  ## Run functional test
 
 ##@ Help
 
