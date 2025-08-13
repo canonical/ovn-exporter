@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"sync"
 
@@ -12,7 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 )
 
@@ -60,30 +57,15 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ovnK8sShim.RegisterStandaloneOvsMetrics(stopChan)
+	ovnK8sShim.RegisterOvsMetricsWithOvnMetrics(stopChan)
 	ovnK8sShim.RegisterOvnDBMetrics(stopChan)
 	ovnK8sShim.RegisterOvnControllerMetrics(stopChan)
 	ovnK8sShim.RegisterOvnNorthdMetrics(stopChan)
 
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
-	server := &http.Server{Addr: cfg.BindAddress(), Handler: mux}
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error().Err(err).Msg("HTTP server error")
-		}
-	}()
+	ovnK8sShim.StartOVNMetricsServer(
+		cfg.BindAddress(), "", "", stopChan, &wg,
+	)
 	wg.Wait()
-
 	close(stopChan)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Error().Err(err).Msg("Server shutdown error")
-	}
 	return nil
 }

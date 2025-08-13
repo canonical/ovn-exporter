@@ -1,6 +1,8 @@
 package ovnk8s
 
 import (
+	"sync"
+
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/metrics"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/util"
 	"github.com/rs/zerolog/log"
@@ -9,10 +11,11 @@ import (
 
 type Register interface {
 	SetExec() error
-	RegisterStandaloneOvsMetrics(stopChan <-chan struct{})
+	RegisterOvsMetricsWithOvnMetrics(stopChan <-chan struct{})
 	RegisterOvnDBMetrics(stopChan <-chan struct{})
 	RegisterOvnControllerMetrics(stopChan <-chan struct{})
 	RegisterOvnNorthdMetrics(stopChan <-chan struct{})
+	StartOVNMetricsServer(bindAddress, certFile, keyFile string, stopChan <-chan struct{}, wg *sync.WaitGroup)
 }
 
 type OvnK8sShim interface {
@@ -33,10 +36,6 @@ func (s *shim) SetExec() error {
 	return nil
 }
 
-func (s *shim) RegisterStandaloneOvsMetrics(stopChan <-chan struct{}) {
-	metrics.RegisterStandaloneOvsMetrics(stopChan)
-}
-
 func (s *shim) RegisterOvnDBMetrics(stopChan <-chan struct{}) {
 	metrics.RegisterOvnDBMetrics(
 		func() bool { return true },
@@ -53,4 +52,12 @@ func (s *shim) RegisterOvnNorthdMetrics(stopChan <-chan struct{}) {
 		func() bool { return true },
 		stopChan,
 	)
+}
+
+func (s *shim) RegisterOvsMetricsWithOvnMetrics(stopChan <-chan struct{}) {
+	metrics.RegisterOvsMetricsWithOvnMetrics(stopChan)
+}
+
+func (s *shim) StartOVNMetricsServer(bindAddress, certFile, keyFile string, stopChan <-chan struct{}, wg *sync.WaitGroup) {
+	metrics.StartOVNMetricsServer(bindAddress, certFile, keyFile, stopChan, wg)
 }
