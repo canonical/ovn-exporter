@@ -15,7 +15,7 @@ setup_file() {
     MICROOVN_SUFFIX_LRP_LSP=lrp
 
     # Create test deployment (following upgrade.bash pattern)
-    TEST_CONTAINERS=$(container_names "$BATS_TEST_FILENAME" 4)
+    TEST_CONTAINERS=$(container_names "$BATS_TEST_FILENAME" 3)
     CENTRAL_CONTAINERS=""
     CHASSIS_CONTAINERS=""
 
@@ -62,6 +62,13 @@ setup_file() {
     # Set up gateway router, workload and background ping on each chassis.
     # This is the exact same setup as upgrade.bash lines 65-73
     assert [ -n "$CENTRAL_CONTAINERS" ]
+    
+    # If no chassis containers, use all containers for testing
+    if [ -z "$CHASSIS_CONTAINERS" ]; then
+        echo "# No chassis-only containers found, using all containers for testing" >&3
+        CHASSIS_CONTAINERS="$TEST_CONTAINERS"
+    fi
+    
     assert [ -n "$CHASSIS_CONTAINERS" ]
 
     for container in $CHASSIS_CONTAINERS; do
@@ -79,7 +86,6 @@ setup_file() {
 teardown_file() {
     collect_coverage $TEST_CONTAINERS
 
-    # Follow upgrade.bash teardown pattern exactly (lines 141-149)
     if [ -n "$FUNCTIONAL_TEST_NS_NAME" ] && [ -n "$FUNCTIONAL_TEST_VIF_NAME" ]; then
         local container
         for container in $CHASSIS_CONTAINERS; do
