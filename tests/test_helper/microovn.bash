@@ -1,1 +1,1 @@
-/home/jneo8/CanonicalProjects/ovnexporter/microovn/tests/test_helper/microovn.bash
+../../../microovn/tests/test_helper/microovn.bash
