@@ -1,5 +1,5 @@
 # Package directory
-PKG_DIR := ./ovnexporter
+PKG_DIR := ./ovn-exporter
 
 ALL_TESTS := $(wildcard tests/*.bats)
 
@@ -8,7 +8,7 @@ ALL_TESTS := $(wildcard tests/*.bats)
 .PHONY: build run run-debug fmt vet lint
 
 build: ## Build the application binary
-		cd $(PKG_DIR) && go build -o ../ovn-exporter ./cmd/*.go
+		cd $(PKG_DIR) && go build -o ../ovnexporter ./cmd/*.go
 
 run: ## Run the application
 		cd $(PKG_DIR) && go run ./cmd/*.go

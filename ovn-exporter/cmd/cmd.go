@@ -5,8 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/canonical/ovnexporter/ovnexporter/config"
-	"github.com/canonical/ovnexporter/ovnexporter/ovnk8s"
+	"github.com/canonical/ovn-exporter/ovn-exporter/config"
+	"github.com/canonical/ovn-exporter/ovn-exporter/ovnk8s"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
