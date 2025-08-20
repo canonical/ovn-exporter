@@ -1,4 +1,4 @@
-module github.com/canonical/ovnexporter/ovnexporter
+module github.com/canonical/ovn-exporter/ovn-exporter
 
 go 1.24.5
 
