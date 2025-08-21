@@ -37,7 +37,7 @@ mocks: ## Generate mock files using mockery
 
 $(ALL_TESTS): build
 	echo "Running functional test $@";  \
-	$(CURDIR)/.bats/bats-core/bin/bats $@
+	$(CURDIR)/microovn/.bats/bats-core/bin/bats $@
 
 check-system: $(ALL_TESTS)  ## Run functional test
 
