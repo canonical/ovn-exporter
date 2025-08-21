@@ -54,14 +54,14 @@ ovn_exporter_functional_test() {
 test_exporter_startup() {
     local container=$1
     
-    # Start ovn-exporter in background with MicroOVN environment
+    # Start ovn exporter in background with MicroOVN environment
     start_ovn_exporter "$container"
     
-    # Give exporter time to start and initialize
-    sleep 5
+    # Wait for exporter process to start
+    wait_for_exporter_process "$container"
     
     # Verify exporter process is running
-    run lxc_exec "$container" "pgrep -f ovn-exporter"
+    run lxc_exec "$container" "pgrep -f ovnexporter"
     assert_success
     echo "# $container: Exporter process started successfully"
 }

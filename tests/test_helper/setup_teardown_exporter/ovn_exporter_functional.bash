@@ -49,9 +49,9 @@ setup_file() {
 
     # Copy the built binary to all test containers
     for container in $TEST_CONTAINERS; do
-        echo "# Copying ovn-exporter binary to $container" >&3
-        lxc_file_replace "$PWD/ovn-exporter" "$container/tmp/ovn-exporter"
-        lxc_exec "$container" "chmod +x /tmp/ovn-exporter"
+        echo "# Copying ovnexporter binary to $container" >&3
+        lxc_file_replace "$PWD/ovnexporter" "$container/tmp/ovnexporter"
+        lxc_exec "$container" "chmod +x /tmp/ovnexporter"
     done
 
     # Follow upgrade.bash pattern exactly (without upgrade part)

@@ -19,7 +19,7 @@ start_ovn_exporter() {
     local container=$1
     local extra_args=${2:-""}
     
-    setup_microovn_environment "$container" "/tmp/ovn-exporter --loglevel info --host 0.0.0.0 --port 9310 $extra_args" &
+    setup_microovn_environment "$container" "/tmp/ovnexporter --loglevel info --host 0.0.0.0 --port 9310 $extra_args" &
 }
 
 # Wait for exporter process to be running
@@ -29,7 +29,7 @@ wait_for_exporter_process() {
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if lxc_exec "$container" "pgrep -f ovn-exporter" >/dev/null 2>&1; then
+        if lxc_exec "$container" "pgrep -f ovnexporter" >/dev/null 2>&1; then
             return 0
         fi
         sleep 1
@@ -57,7 +57,14 @@ wait_for_metrics_endpoint() {
 # Clean up exporter process
 cleanup_exporter() {
     local container=$1
-    lxc_exec "$container" "pkill -f ovn-exporter" || true
+    if ! lxc_exec "$container" "pkill -f ovnexporter" 2>/dev/null; then
+        echo "# Warning: Failed to stop exporter process in $container" >&3
+        # Check if process is actually still running
+        if lxc_exec "$container" "pgrep -f ovnexporter" >/dev/null 2>&1; then
+            echo "# Error: Exporter process still running in $container after pkill" >&3
+            return 1
+        fi
+    fi
     sleep 1
 }
 

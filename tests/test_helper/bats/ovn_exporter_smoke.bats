@@ -25,12 +25,12 @@ setup() {
 
 ovn_exporter_tests() {
     for container in $TEST_CONTAINERS; do
-        # Test that ovn-exporter can start successfully
-        run lxc_exec "$container" "timeout 10s /tmp/ovn-exporter --help"
+        # Test that ovn exporter can start successfully
+        run lxc_exec "$container" "timeout 10s /tmp/ovnexporter --help"
         assert_success
         assert_output --partial "Usage:"
 
-        # Test that ovn-exporter can connect to microovn with proper environment
+        # Test that ovnexporter can connect to microovn with proper environment
         start_ovn_exporter "$container"
         
         # Wait for exporter to be running and accessible
@@ -48,7 +48,7 @@ ovn_exporter_tests() {
 
 ovn_exporter_metrics_tests() {
     for container in $TEST_CONTAINERS; do
-        # Start ovn-exporter in background
+        # Start ovn exporter in background
         start_ovn_exporter "$container"
         
         # Wait for exporter to be ready
