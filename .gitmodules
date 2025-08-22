@@ -1,0 +1,3 @@
+[submodule "microovn"]
+	path = microovn
+	url = https://github.com/canonical/microovn.git
