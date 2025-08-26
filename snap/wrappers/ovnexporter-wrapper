@@ -1,0 +1,31 @@
+#!/bin/bash
+# Wrapper script to ensure proper PATH and environment for ovnexporter
+export PATH="$SNAP/bin:$SNAP_COMMON/ovn-commands/bin:$PATH"
+export LD_LIBRARY_PATH="$SNAP_COMMON/ovn-commands/lib:$SNAP_COMMON/ovn-commands/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+
+# Export environment variables from snap configuration
+if OVN_RUNDIR=$(snapctl get apps.ovn-exporter.env.ovn-rundir 2>/dev/null); then
+    export OVN_RUNDIR
+fi
+
+if OVS_RUNDIR=$(snapctl get apps.ovn-exporter.env.ovs-rundir 2>/dev/null); then
+    export OVS_RUNDIR
+fi
+
+if OVS_VSWITCHD_PID=$(snapctl get apps.ovn-exporter.env.ovs-vswitchd-pid 2>/dev/null); then
+    export OVS_VSWITCHD_PID
+fi
+
+if OVSDB_SERVER_PID=$(snapctl get apps.ovn-exporter.env.ovsdb-server-pid 2>/dev/null); then
+    export OVSDB_SERVER_PID
+fi
+
+if OVN_NBDB_LOCATION=$(snapctl get apps.ovn-exporter.env.ovn-nbdb-location 2>/dev/null); then
+    export OVN_NBDB_LOCATION
+fi
+
+if OVN_SBDB_LOCATION=$(snapctl get apps.ovn-exporter.env.ovn-sbdb-location 2>/dev/null); then
+    export OVN_SBDB_LOCATION
+fi
+
+exec "$SNAP/bin/ovnexporter" "$@"

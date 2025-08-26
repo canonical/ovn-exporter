@@ -1,0 +1,122 @@
+name: ovn-exporter
+base: core24
+version: '0.1'
+summary: Prometheus exporter for OVN (Open Virtual Network) metrics
+description: |
+  OVN Exporter is a Prometheus metrics exporter that collects and exposes
+  metrics from OVN (Open Virtual Network) components. It provides insights
+  into OVN northbound and southbound database statistics, helping monitor
+  the health and performance of OVN deployments.
+
+grade: devel
+confinement: devmode
+
+hooks:
+  configure:
+    plugs:
+      - snapd-control
+  connect-plug-ovn-chassis:
+    plugs:
+      - snapd-control
+  connect-plug-ovn-central-data:
+    plugs:
+      - snapd-control
+
+plugs:
+  ovn-chassis:
+    interface: content
+    content: microovn-run-switch
+    target: "$SNAP_COMMON/run"
+  ovn-central-data:
+    interface: content
+    content: microovn-data-central
+    target: "$SNAP_COMMON/data"
+
+apps:
+  ovn-exporter:
+    command: bin/ovnexporter-wrapper
+    daemon: simple
+    restart-condition: always
+    extensions:
+      - env-injector
+    environment:
+      PATH: "$SNAP/bin:$PATH"
+    plugs:
+      - network
+      - network-bind
+      - ovn-central-data
+      - ovn-chassis
+
+parts:
+  ovn-exporter:
+    plugin: go
+    source: .
+    source-subdir: ovn-exporter
+    build-snaps:
+      - go/1.24/stable
+    override-build: |
+      cd ovn-exporter
+      go mod download
+      go build -o $SNAPCRAFT_PART_INSTALL/bin/ovnexporter ./cmd/...
+
+  wrappers:
+    plugin: dump
+    source: snap/wrappers/
+    organize:
+      ovnexporter-wrapper: bin/ovnexporter-wrapper
+
+  ovn:
+    plugin: nil
+    stage-packages:
+      - ovn-central
+      - ovn-host
+    organize:
+      usr/bin/: bin/
+      usr/share/: share/
+    prime:
+     - bin/ovn-appctl
+     - bin/ovn-controller
+     - bin/ovn-nbctl
+     - bin/ovn-northd
+     - bin/ovn-sbctl
+     - bin/ovn-trace
+     - etc/ovn
+     - share/ovn
+    override-build: |
+        craftctl default
+
+        mkdir -p "${CRAFT_PART_INSTALL}/etc/ovn/"
+
+  ovs:
+    plugin: nil
+    stage-packages:
+      - openvswitch-switch
+    organize:
+      usr/bin/: bin/
+      usr/sbin/: bin/
+      usr/lib/: lib/
+      usr/share/: share/
+    prime:
+     - bin/ovs-appctl
+     - bin/ovs-dpctl
+     - bin/ovs-ofctl
+     - bin/ovs-vsctl
+     - bin/ovs-vswitchd
+     - bin/ovsdb-client
+     - bin/ovsdb-server
+     - bin/ovsdb-tool
+       # The lib cherry-picking is unfortunately necessary to avoid pulling in
+       # external symlinks provided by the openssl package dependency.
+       # (External symlinks, i.e. pointing at something in /, are not allowed.)
+     - lib/*/libevent-2.1.so*
+     - lib/*/libnuma.so.*
+     - lib/*/bpf/*
+     - lib/*/libbpf.so.*
+     - lib/*/libxdp.so.*
+     - lib/*/libunbound.so*
+     - share/openvswitch
+    override-build: |
+        craftctl default
+
+        mkdir -p "${CRAFT_PART_INSTALL}/bin/"
+        mv "${CRAFT_PART_INSTALL}/usr/lib/openvswitch-switch/ovs-vswitchd" "${CRAFT_PART_INSTALL}/bin/"
