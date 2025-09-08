@@ -3,11 +3,18 @@ PKG_DIR := ./ovn-exporter
 
 ALL_TESTS := $(wildcard tests/*.bats)
 
+##@ Snap
+
+.PHONY: build
+
+build: ## Build the application snap
+		SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft pack
+
 ##@ Development
 
-.PHONY: build run run-debug fmt vet lint
+.PHONY: go-build run run-debug fmt vet check-lint lint shfmt shfmt-fix
 
-build: ## Build the application binary
+go-build: ## Build the application binary
 		cd $(PKG_DIR) && go build -o ../ovnexporter ./cmd/*.go
 
 run: ## Run the application
@@ -19,7 +26,24 @@ fmt: ## Format Go code
 vet: ## Run go vet
 		cd $(PKG_DIR) && go vet ./...
 
-lint: fmt vet ## Run all linters (format and vet)
+shfmt:  ## Check shell format
+		test $$(shfmt -l -s ./snap | wc -l) -eq 0 || (echo "FAILED: Files need formatting" && shfmt -l -s ./snap && exit 1)
+
+shfmt-fix:  ## Fix shell format
+		shfmt -w -l -s ./snap
+
+check-tabs:  ## Check tabs
+	grep -lrP "\t" tests/ && exit 1 || exit 0
+
+check-lint: check-tabs shfmt  ## Run shell linters
+	find tests/ \
+		-type f \
+		-not -name \*.yaml \
+		-not -name \*.swp \
+		-not -name \*.conf\
+		| xargs shellcheck --severity=warning && echo Success!
+
+check-lint-go: fmt vet ## Run Go linters (format and vet)
 
 ##@ Testing
 
