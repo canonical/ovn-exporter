@@ -8,8 +8,7 @@ description: |
   into OVN northbound and southbound database statistics, helping monitor
   the health and performance of OVN deployments.
 
-grade: devel
-confinement: devmode
+confinement: strict
 
 hooks:
   configure:
@@ -50,12 +49,10 @@ apps:
 parts:
   ovn-exporter:
     plugin: go
-    source: .
-    source-subdir: ovn-exporter
+    source: ovn-exporter
     build-snaps:
       - go/1.24/stable
     override-build: |
-      cd ovn-exporter
       go mod download
       go build -o $SNAPCRAFT_PART_INSTALL/bin/ovnexporter ./cmd/...
 
