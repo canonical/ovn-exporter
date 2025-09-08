@@ -2,13 +2,16 @@
 PKG_DIR := ./ovn-exporter
 
 ALL_TESTS := $(wildcard tests/*.bats)
+OVN_EXPORTER_SNAP := ovn-exporter.snap
+OVN_EXPORTER_SOURCES := $(shell find ovn-exporter/ -type f -name "*.go")
+SNAP_SOURCES := $(shell find snap/ -type f)
 
 ##@ Snap
 
-.PHONY: build
+$(OVN_EXPORTER_SNAP): $(OVN_EXPORTER_SOURCES) $(SNAP_SOURCES) ## Build the application snap
+		SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft pack -o $(OVN_EXPORTER_SNAP)
 
-build: ## Build the application snap
-		SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft pack
+build: $(OVN_EXPORTER_SNAP) ## Build the application snap
 
 ##@ Development
 
@@ -59,7 +62,7 @@ test-coverage: ## Run tests with coverage report
 mocks: ## Generate mock files using mockery
 		mockery
 
-$(ALL_TESTS): build
+$(ALL_TESTS): go-build
 	echo "Running functional test $@";  \
 	$(CURDIR)/microovn/.bats/bats-core/bin/bats $@
 
