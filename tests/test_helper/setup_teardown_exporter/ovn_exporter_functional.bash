@@ -2,6 +2,7 @@ setup_file() {
     load test_helper/common.bash
     load test_helper/lxd.bash
     load test_helper/microovn.bash
+    load test_helper/ovn_exporter_common.bash
     load ../.bats/bats-support/load.bash
     load ../.bats/bats-assert/load.bash
 
@@ -26,7 +27,7 @@ setup_file() {
     launch_containers_args \
         "${TEST_LXD_LAUNCH_ARGS:--c security.nesting=true -c security.privileged=true}" $TEST_CONTAINERS
     wait_containers_ready $TEST_CONTAINERS
-    install_microovn_from_store "" $TEST_CONTAINERS
+    install_microovn_from_store "latest/edge" $TEST_CONTAINERS
     bootstrap_cluster $TEST_CONTAINERS
 
     # Categorize containers as "CENTRAL" and "CHASSIS" based on the services they run
@@ -47,12 +48,8 @@ setup_file() {
         wait_microovn_online "$container" 60
     done
 
-    # Copy the built binary to all test containers
-    for container in $TEST_CONTAINERS; do
-        echo "# Copying ovnexporter binary to $container" >&3
-        lxc_file_replace "$PWD/ovnexporter" "$container/tmp/ovnexporter"
-        lxc_exec "$container" "chmod +x /tmp/ovnexporter"
-    done
+    # Install OVN Exporter snap to all test containers
+    install_ovn_exporter "$PWD/ovn-exporter.snap" $TEST_CONTAINERS
 
     # Follow upgrade.bash pattern exactly (without upgrade part)
     # Export names used locally on chassis containers for use in teardown_file().
