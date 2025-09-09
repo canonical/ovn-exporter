@@ -9,10 +9,10 @@ setup_file() {
     export ABS_TOP_TEST_DIRNAME
 
     # Set microovn prefix variables needed by helper functions
-    MICROOVN_PREFIX_LS=sw
-    MICROOVN_PREFIX_LR=lr
-    MICROOVN_PREFIX_LRP=lrp-sw
-    MICROOVN_SUFFIX_LRP_LSP=lrp
+    export MICROOVN_PREFIX_LS=sw
+    export MICROOVN_PREFIX_LR=lr
+    export MICROOVN_PREFIX_LRP=lrp-sw
+    export MICROOVN_SUFFIX_LRP_LSP=lrp
 
     # Create test deployment (following upgrade.bash pattern)
     TEST_CONTAINERS=$(container_names "$BATS_TEST_FILENAME" 3)
@@ -33,7 +33,7 @@ setup_file() {
     local container=""
     for container in $TEST_CONTAINERS; do
         container_services=$(microovn_get_cluster_services "$container")
-        if [[ "$container_services" == *"central"* ]]; then
+        if [[ $container_services == *"central"* ]]; then
             CENTRAL_CONTAINERS+="$container "
         else
             CHASSIS_CONTAINERS+="$container "
@@ -56,19 +56,19 @@ setup_file() {
 
     # Follow upgrade.bash pattern exactly (without upgrade part)
     # Export names used locally on chassis containers for use in teardown_file().
-    export FUNCTIONAL_TEST_NS_NAME="upgrade_ns0" 
+    export FUNCTIONAL_TEST_NS_NAME="upgrade_ns0"
     export FUNCTIONAL_TEST_VIF_NAME="upgrade_vif0"
 
     # Set up gateway router, workload and background ping on each chassis.
     # This is the exact same setup as upgrade.bash lines 65-73
     assert [ -n "$CENTRAL_CONTAINERS" ]
-    
+
     # If no chassis containers, use all containers for testing
     if [ -z "$CHASSIS_CONTAINERS" ]; then
         echo "# No chassis-only containers found, using all containers for testing" >&3
         CHASSIS_CONTAINERS="$TEST_CONTAINERS"
     fi
-    
+
     assert [ -n "$CHASSIS_CONTAINERS" ]
 
     for container in $CHASSIS_CONTAINERS; do

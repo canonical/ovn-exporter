@@ -1,1 +1,1 @@
-./test_helper/bats/ovn_exporter_smoke.bats
+test_helper/bats/ovn_exporter_smoke.bats

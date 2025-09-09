@@ -2,12 +2,22 @@
 PKG_DIR := ./ovn-exporter
 
 ALL_TESTS := $(wildcard tests/*.bats)
+OVN_EXPORTER_SNAP := ovn-exporter.snap
+OVN_EXPORTER_SOURCES := $(shell find ovn-exporter/ -type f -name "*.go")
+SNAP_SOURCES := $(shell find snap/ -type f)
+
+##@ Snap
+
+$(OVN_EXPORTER_SNAP): $(OVN_EXPORTER_SOURCES) $(SNAP_SOURCES) ## Build the application snap
+		SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft pack -o $(OVN_EXPORTER_SNAP)
+
+build: $(OVN_EXPORTER_SNAP) ## Build the application snap
 
 ##@ Development
 
-.PHONY: build run run-debug fmt vet lint
+.PHONY: go-build run run-debug fmt vet check-lint lint shfmt shfmt-fix
 
-build: ## Build the application binary
+go-build: ## Build the application binary
 		cd $(PKG_DIR) && go build -o ../ovnexporter ./cmd/*.go
 
 run: ## Run the application
@@ -19,7 +29,24 @@ fmt: ## Format Go code
 vet: ## Run go vet
 		cd $(PKG_DIR) && go vet ./...
 
-lint: fmt vet ## Run all linters (format and vet)
+shfmt:  ## Check shell format
+		test $$(shfmt -l -s ./snap | wc -l) -eq 0 || (echo "FAILED: Files need formatting" && shfmt -l -s ./snap && exit 1)
+
+shfmt-fix:  ## Fix shell format
+		shfmt -w -l -s ./snap
+
+check-tabs:  ## Check tabs
+	grep -lrP "\t" tests/ && exit 1 || exit 0
+
+check-lint: check-tabs shfmt  ## Run shell linters
+	find tests/ \
+		-type f \
+		-not -name \*.yaml \
+		-not -name \*.swp \
+		-not -name \*.conf\
+		| xargs shellcheck --severity=warning && echo Success!
+
+check-lint-go: fmt vet ## Run Go linters (format and vet)
 
 ##@ Testing
 
@@ -35,7 +62,7 @@ test-coverage: ## Run tests with coverage report
 mocks: ## Generate mock files using mockery
 		mockery
 
-$(ALL_TESTS): build
+$(ALL_TESTS): go-build
 	echo "Running functional test $@";  \
 	$(CURDIR)/microovn/.bats/bats-core/bin/bats $@
 

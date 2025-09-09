@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+# Check if any OVN-related environment variables have been configured
+ovn_env_changed=false
+
+# List of OVN environment variables to monitor
+ovn_env_vars=(
+	"apps.ovn-exporter.env.ovn-rundir"
+	"apps.ovn-exporter.env.ovs-rundir"
+	"apps.ovn-exporter.env.ovs-vswitchd-pid"
+	"apps.ovn-exporter.env.ovsdb-server-pid"
+	"apps.ovn-exporter.env.ovn-nbdb-location"
+	"apps.ovn-exporter.env.ovn-sbdb-location"
+)
+
+# Check if any of the OVN environment variables are set
+for env_var in "${ovn_env_vars[@]}"; do
+	if snapctl get "$env_var" >/dev/null 2>&1; then
+		echo "OVN environment variable $env_var is configured"
+		ovn_env_changed=true
+		break
+	fi
+done
+
+# Restart service if any OVN environment variables are configured
+if [[ $ovn_env_changed == "true" ]]; then
+	echo "OVN environment variables detected, restarting ovn-exporter service"
+	snapctl restart ovn-exporter.ovn-exporter || echo "Service restart failed, continuing..."
+else
+	echo "No OVN environment variables configured"
+fi
