@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: '14 3 * * 1'
 
 jobs:
   lint-shell:
@@ -20,3 +22,144 @@ jobs:
       - name: Run shell linting
         run: |
           make check-lint
+
+      - name: Ensure go.mod is up to date
+        run: |
+          set -euxo pipefail
+          # Check whether a `go mod tidy` would cause go.mod to change and fail
+          # if it does.
+          assert_git_status() {
+              local files="go.mod go.sum"
+              if [ -n "$(git status --porcelain=v2 $files)" ]; then
+                  echo "files NOT in sync with git: $files"
+                  git status $files
+                  exit 1
+              else
+                  echo "files in sync with git: $files"
+              fi
+          }
+
+          cd ovn-exporter
+          assert_git_status
+          go mod tidy -v -x
+          assert_git_status
+
+  build:
+    name: build
+    needs:
+      - lint-shell
+    runs-on: ubuntu-latest
+    env:
+      OVN_EXPORTER_SNAP: ovn-exporter.snap
+      OVN_EXPORTER_UNSQUASH_DST: ${{ github.workspace }}/ovn-exporter-squashfs
+      # The `base_ref` will only be set for PR and contain the name of the
+      # target branch.  The `ref_name` will be correct for the final push
+      # check after a PR is merged.
+      #
+      # This setup may lead to failures on push to arbitrarily named branches
+      # on a fork, but that is a price worth paying.
+      #
+      # Contributors can raise a draft PR to get accurate results.
+      POSSIBLE_TARGET_BRANCH: "${{ github.base_ref || github.ref_name }}"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Clear FORWARD firewall rules
+        run: |
+          # Docker can inject rules causing firewall conflicts
+          sudo iptables -P FORWARD ACCEPT  || true
+          sudo ip6tables -P FORWARD ACCEPT || true
+          sudo iptables -F FORWARD  || true
+          sudo ip6tables -F FORWARD || true
+
+      - name: Install dependencies
+        run: |
+          sudo snap refresh
+          sudo snap install lxd
+          sudo snap set lxd daemon.group=adm
+          sudo lxd init --auto
+          test $POSSIBLE_TARGET_BRANCH = main && \
+              export SNAPCRAFT_CHANNEL=latest/edge
+          sudo snap install snapcraft \
+              --channel "${SNAPCRAFT_CHANNEL:-latest/stable}" \
+              --classic
+
+      - name: Build snap
+        run: |
+          make $OVN_EXPORTER_SNAP
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snaps
+          path: ${{ env.OVN_EXPORTER_SNAP }}
+          retention-days: 5
+
+  metadata:
+    name: Generate matrix
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate matrix
+        id: generate-matrix
+        run: |
+          MATRIX_JSON="{\"test-file\": ["
+          TEST_FILES=( $(cd tests; ls -1 *.bats) )
+          for (( i=0 ; i < "${#TEST_FILES[@]}"; i++ )); do
+              if [ $i -gt 0 ]; then
+                  MATRIX_JSON+=","
+              fi
+              MATRIX_JSON+="\"${TEST_FILES[$i]}\""
+          done
+          MATRIX_JSON+="]}"
+
+          echo matrix=${MATRIX_JSON} | tee -a ${GITHUB_OUTPUT}
+
+  system-tests:
+    name: System tests
+    needs:
+      - metadata
+    runs-on: ubuntu-latest
+    env:
+      OVN_EXPORTER_SNAP_PATH: ${{ github.workspace }}/ovn-exporter.snap
+    strategy:
+      matrix: ${{ fromJson(needs.metadata.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download built snap
+        uses: actions/download-artifact@v4
+        with:
+          name: snaps
+
+      - name: Clear FORWARD firewall rules
+        run: |
+          # Docker can inject rules causing firewall conflicts
+          sudo iptables -P FORWARD ACCEPT  || true
+          sudo ip6tables -P FORWARD ACCEPT || true
+          sudo iptables -F FORWARD  || true
+          sudo ip6tables -F FORWARD || true
+
+      - name: Install dependencies
+        run: |
+          sudo snap refresh
+          sudo snap install lxd
+          sudo snap set lxd daemon.group=adm
+          sudo lxd init --auto
+          snap list
+
+      - name: Run system tests
+        run: make tests/${{ matrix.test-file }}
