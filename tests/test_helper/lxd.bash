@@ -1,1 +1,1 @@
-../../../microovn/tests/test_helper/lxd.bash
+../../microovn/tests/test_helper/lxd.bash
