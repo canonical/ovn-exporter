@@ -9,7 +9,7 @@ SNAP_SOURCES := $(shell find snap/ -type f)
 ##@ Snap
 
 $(OVN_EXPORTER_SNAP): $(OVN_EXPORTER_SOURCES) $(SNAP_SOURCES) ## Build the application snap
-		SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft pack -o $(OVN_EXPORTER_SNAP)
+		snapcraft pack -o $(OVN_EXPORTER_SNAP)
 
 build: $(OVN_EXPORTER_SNAP) ## Build the application snap
 
@@ -62,7 +62,7 @@ test-coverage: ## Run tests with coverage report
 mocks: ## Generate mock files using mockery
 		mockery
 
-$(ALL_TESTS): go-build
+$(ALL_TESTS): build
 	echo "Running functional test $@";  \
 	$(CURDIR)/microovn/.bats/bats-core/bin/bats $@
 
