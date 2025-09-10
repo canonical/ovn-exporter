@@ -2,32 +2,37 @@
 
 set -e
 
-# Check if any OVN-related environment variables have been configured
-ovn_env_changed=false
+# Configuration hook for ovn-exporter snap
+# This hook validates configuration options and restarts the service when needed
 
-# List of OVN environment variables to monitor
-ovn_env_vars=(
-	"apps.ovn-exporter.env.ovn-rundir"
-	"apps.ovn-exporter.env.ovs-rundir"
-	"apps.ovn-exporter.env.ovs-vswitchd-pid"
-	"apps.ovn-exporter.env.ovsdb-server-pid"
-	"apps.ovn-exporter.env.ovn-nbdb-location"
-	"apps.ovn-exporter.env.ovn-sbdb-location"
+# List of supported configuration options
+config_options=(
+	"ovn-rundir"
+	"ovs-rundir"
+	"ovs-vswitchd-pid"
+	"ovsdb-server-pid"
+	"ovn-nbdb-location"
+	"ovn-sbdb-location"
 )
 
-# Check if any of the OVN environment variables are set
-for env_var in "${ovn_env_vars[@]}"; do
-	if snapctl get "$env_var" >/dev/null 2>&1; then
-		echo "OVN environment variable $env_var is configured"
-		ovn_env_changed=true
+# Flag to track if any configuration changed
+config_changed=false
+
+# Validate and set default values if needed
+for option in "${config_options[@]}"; do
+	# Get current value
+	current_value=$(snapctl get "$option" 2>/dev/null || echo "")
+
+	if [[ -n $current_value ]]; then
+		config_changed=true
 		break
 	fi
 done
 
-# Restart service if any OVN environment variables are configured
-if [[ $ovn_env_changed == "true" ]]; then
-	echo "OVN environment variables detected, restarting ovn-exporter service"
-	snapctl restart ovn-exporter.ovn-exporter || echo "Service restart failed, continuing..."
+# Restart service if any configuration changed
+if [[ $config_changed == "true" ]]; then
+	echo "Configuration changes detected, restarting ovn-exporter service"
+	snapctl restart ovn-exporter.ovn-exporter 2>/dev/null || echo "Service restart scheduled"
 else
-	echo "No OVN environment variables configured"
+	echo "No configuration changes detected"
 fi

@@ -36,8 +36,6 @@ apps:
     command: bin/ovnexporter-wrapper
     daemon: simple
     restart-condition: always
-    extensions:
-      - env-injector
     environment:
       PATH: "$SNAP/bin:$PATH"
     plugs:

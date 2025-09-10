@@ -2,8 +2,8 @@
 set -e
 
 # Set OVN database locations when ovn-central-data interface is connected
-snapctl set "apps.ovn-exporter.env.ovn-nbdb-location"="$SNAP_COMMON/data/central/db/ovnnb_db.db"
-snapctl set "apps.ovn-exporter.env.ovn-sbdb-location"="$SNAP_COMMON/data/central/db/ovnsb_db.db"
+snapctl set "ovn-nbdb-location"="$SNAP_COMMON/data/central/db/ovnnb_db.db"
+snapctl set "ovn-sbdb-location"="$SNAP_COMMON/data/central/db/ovnsb_db.db"
 echo "Set OVN database locations in $SNAP_COMMON/data/central/db/"
 
 # Restart the service to pick up new environment (ignore errors)
