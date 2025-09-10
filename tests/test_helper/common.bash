@@ -1,1 +1,1 @@
-../../../microovn/tests/test_helper/common.bash
+../../microovn/tests/test_helper/common.bash

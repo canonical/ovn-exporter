@@ -1,35 +1,53 @@
 # Common functions for OVN Exporter tests
 
-# Set up standard MicroOVN environment variables for exporter
-setup_microovn_environment() {
-    local container=$1
-    lxc_exec "$container" "
-        export OVS_RUNDIR='/var/snap/microovn/common/run/switch'
-        export OVN_RUNDIR='/var/snap/microovn/common/run/ovn'
-        export OVS_VSWITCHD_PID='/var/snap/microovn/common/run/switch/ovs-vswitchd.pid'
-        export OVSDB_SERVER_PID='/var/snap/microovn/common/run/switch/ovsdb-server.pid'
-        export OVN_NBDB_LOCATION='/var/snap/microovn/common/data/central/db/ovnnb_db.db'
-        export OVN_SBDB_LOCATION='/var/snap/microovn/common/data/central/db/ovnsb_db.db'
-        $2
-    "
+# install_ovn_exporter SNAP_FILE CONTAINER1 [CONTAINER2 ...]
+#
+# Install OVN Exporter snap from local snap file in all CONTAINERs.
+# This follows the same pattern as install_microovn() function.
+function install_ovn_exporter() {
+    local snap_file=$1; shift
+    local containers=$*
+
+    for container in $containers; do
+        echo "# Deploying OVN Exporter to $container" >&3
+        lxc_file_push "$snap_file" "$container/tmp/ovn-exporter.snap"
+        echo "# Installing OVN Exporter in container $container" >&3
+        lxc_exec "$container" "snap install /tmp/ovn-exporter.snap --dangerous"
+        echo "# Connecting plugs in container $container" >&3
+        # Connect OVN interfaces to microovn
+        lxc_exec "$container" "snap connect ovn-exporter:ovn-central-data microovn:ovn-central-data"
+        lxc_exec "$container" "snap connect ovn-exporter:ovn-chassis microovn:ovn-chassis"
+    done
 }
 
-# Start OVN exporter in background with standard configuration
+# Start OVN exporter service
 start_ovn_exporter() {
     local container=$1
-    local extra_args=${2:-""}
-
-    setup_microovn_environment "$container" "/tmp/ovnexporter --loglevel info --host 0.0.0.0 --port 9310 $extra_args" &
+    
+    echo "# Starting ovn-exporter service in $container" >&3
+    
+    # Check if service is already active
+    if lxc_exec "$container" "snap services ovn-exporter | awk 'NR>1 {print \$3}' | grep -q '^active$'" 2>/dev/null; then
+        echo "# ovn-exporter service already active in $container" >&3
+        return 0
+    fi
+    
+    # Start the service
+    if ! lxc_exec "$container" "snap start ovn-exporter"; then
+        echo "# Error: Failed to start ovn-exporter service in $container" >&3
+        return 1
+    fi
 }
 
-# Wait for exporter process to be running
-wait_for_exporter_process() {
+# Wait for exporter service to be active
+wait_for_exporter_active() {
     local container=$1
     local max_attempts=${2:-10}
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do
-        if lxc_exec "$container" "pgrep -f ovnexporter" >/dev/null 2>&1; then
+        # Check if snap service is active
+        if lxc_exec "$container" "snap services ovn-exporter | awk 'NR>1 {print \$3}' | grep -q '^active$'" >/dev/null 2>&1; then
             return 0
         fi
         sleep 1
@@ -57,15 +75,11 @@ wait_for_metrics_endpoint() {
 # Clean up exporter process
 cleanup_exporter() {
     local container=$1
-    if ! lxc_exec "$container" "pkill -f ovnexporter" 2>/dev/null; then
-        echo "# Warning: Failed to stop exporter process in $container" >&3
-        # Check if process is actually still running
-        if lxc_exec "$container" "pgrep -f ovnexporter" >/dev/null 2>&1; then
-            echo "# Error: Exporter process still running in $container after pkill" >&3
-            return 1
-        fi
+    echo "# Stopping ovn-exporter service in $container" >&3
+    if ! lxc_exec "$container" "snap stop ovn-exporter" 2>/dev/null; then
+        echo "# Warning: Failed to stop ovn-exporter service in $container" >&3
+        return 1
     fi
-    sleep 1
 }
 
 # Basic metrics validation - check for Prometheus format
@@ -237,4 +251,56 @@ validate_ovn_northd_metrics_comprehensive() {
     validate_metrics_with_retry "$container" "${northd_patterns[@]}"
 
     echo "# $container: OVN Northd metrics verification passed"
+}
+
+# Common test functions
+
+# Test that exporter can start and show help
+test_exporter_help() {
+    local container=$1
+    
+    echo "# $container: Testing exporter help command" >&3
+    run lxc_exec "$container" "timeout 10s snap run ovn-exporter --help"
+    assert_success
+    assert_output --partial "Usage:"
+}
+
+# Test exporter startup and verify it's running
+test_exporter_startup() {
+    local container=$1
+
+    echo "# $container: Testing exporter startup" >&3
+    # Start ovn exporter service
+    start_ovn_exporter "$container"
+
+    # Wait for exporter service to start
+    wait_for_exporter_active "$container"
+
+    # Verify exporter service is running
+    run lxc_exec "$container" "snap services ovn-exporter | awk 'NR>1 {print \$3}' | grep '^active$'"
+    assert_success
+    echo "# $container: Exporter service started successfully" >&3
+}
+
+# Test basic metrics functionality
+test_exporter_basic_metrics() {
+    local container=$1
+    
+    echo "# $container: Testing basic metrics functionality" >&3
+    # Start exporter service
+    start_ovn_exporter "$container"
+    
+    # Wait for exporter to be ready
+    wait_for_exporter_active "$container" 10
+    wait_for_metrics_endpoint "$container" 15
+    
+    # Test metrics endpoint accessibility
+    run lxc_exec "$container" "curl -s http://localhost:9310/metrics"
+    assert_success
+    
+    # Test Prometheus format and basic OVS metrics
+    validate_prometheus_format "$container"
+    validate_basic_ovs_metrics "$container"
+    
+    echo "# $container: Basic metrics verification passed" >&3
 }

@@ -41,32 +41,7 @@ ovn_exporter_functional_test() {
         validate_ovn_database_metrics_comprehensive "$container"
         validate_ovn_northd_metrics_comprehensive "$container"
 
-        # Cleanup for next container
-        cleanup_exporter_process "$container"
         echo "# Completed functional test on $container" >&3
     done
 }
 
-# Start the OVN exporter process
-test_exporter_startup() {
-    local container=$1
-
-    # Start ovn exporter in background with MicroOVN environment
-    start_ovn_exporter "$container"
-
-    # Wait for exporter process to start
-    wait_for_exporter_process "$container"
-
-    # Verify exporter process is running
-    run lxc_exec "$container" "pgrep -f ovnexporter"
-    assert_success
-    echo "# $container: Exporter process started successfully"
-}
-
-# Clean up exporter process
-cleanup_exporter_process() {
-    local container=$1
-
-    cleanup_exporter "$container"
-    echo "# $container: Exporter process cleaned up"
-}
