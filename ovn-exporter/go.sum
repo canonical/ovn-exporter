@@ -184,8 +184,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/j-keck/arping v1.0.2 h1:hlLhuXgQkzIJTZuhMigvG/CuSkaspeaD9hRDk2zuiMI=
 github.com/j-keck/arping v1.0.2/go.mod h1:aJbELhR92bSk7tp79AWM/ftfc90EfEi2bQJrbBFOsPw=
-github.com/jneo8/ovn-kubernetes/go-controller v0.0.0-20250811061228-485c0d84b03a h1:P+N1MWdi4dQDifPAXnlfZeiIJizoXlVpGCKZUEGzcnQ=
-github.com/jneo8/ovn-kubernetes/go-controller v0.0.0-20250811061228-485c0d84b03a/go.mod h1:iB/BtAuFB/szaGWsa5xPDJHpaXrseVCIXyDfq4l8tjY=
+github.com/jneo8/ovn-kubernetes/go-controller v0.0.0-20250925064422-f3f0a6576249 h1:FPuUvHqq/+aa/Rh5IPrnlJWO6MUOxpoGYNnBhWmcOZ4=
+github.com/jneo8/ovn-kubernetes/go-controller v0.0.0-20250925064422-f3f0a6576249/go.mod h1:iB/BtAuFB/szaGWsa5xPDJHpaXrseVCIXyDfq4l8tjY=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.6/go.mod h1:+SdeFBvtyEkXs7REEP0seUULqWtbJapLOCVDaaPEHmU=

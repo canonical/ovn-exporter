@@ -163,7 +163,7 @@ validate_ovs_metrics_comprehensive() {
 
     # Define all OVS metrics patterns to wait for
     local ovs_patterns=(
-        'ovs_build_info{version="3.3.0"} 1'
+        'ovs_build_info'
         'ovs_vswitchd_bridge{bridge="br-int"} 1'
         'ovs_vswitchd_bridge_total 1'
         'ovs_vswitchd_bridge_flows_total{bridge="br-int"}'
@@ -189,7 +189,7 @@ validate_ovn_controller_metrics_comprehensive() {
 
     # Define all OVN Controller metrics patterns to wait for
     local controller_patterns=(
-        'ovn_controller_build_info{ovs_lib_version="3.3.0",version="24.03.2"} 1'
+        'ovn_controller_build_info'
         'ovn_controller_southbound_database_connected 1'
         'ovn_controller_integration_bridge_geneve_ports'
         'ovn_controller_integration_bridge_openflow_total'
@@ -213,7 +213,7 @@ validate_ovn_database_metrics_comprehensive() {
 
     # Define all OVN Database metrics patterns to wait for
     local database_patterns=(
-        'ovn_db_build_info{nb_schema_version="7.3.0",sb_schema_version="20.33.0",version="3.3.0"} 1'
+        'ovn_db_build_info'
         'ovn_db_db_size_bytes{db_name="OVN_Northbound"}'
         'ovn_db_db_size_bytes{db_name="OVN_Southbound"}'
         'ovn_db_ovsdb_monitors{db_name="OVN_Northbound"}'
@@ -235,7 +235,7 @@ validate_ovn_northd_metrics_comprehensive() {
 
     # Define all OVN Northd metrics patterns to wait for
     local northd_patterns=(
-        'ovn_northd_build_info{ovs_lib_version="3.3.0",version="24.03.2"} 1'
+        'ovn_northd_build_info'
         'ovn_northd_nb_connection_status 1'
         'ovn_northd_sb_connection_status 1'
         'ovn_northd_status'

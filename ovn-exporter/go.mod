@@ -108,5 +108,5 @@ require (
 
 replace (
 	github.com/coreos/go-iptables => github.com/trozet/go-iptables v0.0.0-20240328221912-077e672b3808
-	github.com/ovn-org/ovn-kubernetes/go-controller => github.com/jneo8/ovn-kubernetes/go-controller v0.0.0-20250811061228-485c0d84b03a
+	github.com/ovn-org/ovn-kubernetes/go-controller => github.com/jneo8/ovn-kubernetes/go-controller v0.0.0-20250925064422-f3f0a6576249
 )
