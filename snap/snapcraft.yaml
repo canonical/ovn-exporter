@@ -10,17 +10,6 @@ description: |
 
 confinement: strict
 
-hooks:
-  configure:
-    plugs:
-      - snapd-control
-  connect-plug-ovn-chassis:
-    plugs:
-      - snapd-control
-  connect-plug-ovn-central-data:
-    plugs:
-      - snapd-control
-
 plugs:
   ovn-chassis:
     interface: content
