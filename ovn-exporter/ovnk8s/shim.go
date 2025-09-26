@@ -1,8 +1,11 @@
 package ovnk8s
 
 import (
+	"os"
 	"sync"
 
+	"github.com/canonical/ovn-exporter/ovn-exporter/config"
+	ovnconfig "github.com/ovn-org/ovn-kubernetes/go-controller/pkg/config"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/metrics"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/util"
 	"github.com/rs/zerolog/log"
@@ -11,6 +14,7 @@ import (
 
 type Register interface {
 	SetExec() error
+	ApplyConfigOverrides(cfg *config.Config) error
 	RegisterOvsMetricsWithOvnMetrics(stopChan <-chan struct{})
 	RegisterOvnDBMetrics(stopChan <-chan struct{})
 	RegisterOvnControllerMetrics(stopChan <-chan struct{})
@@ -33,6 +37,78 @@ func (s *shim) SetExec() error {
 		log.Error().Err(err).Msg("SetExec error")
 		return err
 	}
+	return nil
+}
+
+func (s *shim) ApplyConfigOverrides(cfg *config.Config) error {
+	log.Debug().
+		Str("ovn-rundir", cfg.OvnRundir).
+		Str("ovs-rundir", cfg.OvsRundir).
+		Str("ovs-vswitchd-pid", cfg.OvsVswitchdPid).
+		Str("ovsdb-server-pid", cfg.OvsdbServerPid).
+		Str("ovn-nbdb-location", cfg.OvnNbdbLocation).
+		Str("ovn-sbdb-location", cfg.OvnSbdbLocation).
+		Msg("Received configuration values")
+
+	if !cfg.HasOvnKubernetesOverrides() {
+		log.Debug().Msg("No OVN/OVS configuration overrides provided")
+		return nil
+	}
+
+	log.Info().Msg("Applying OVN/OVS configuration overrides")
+
+	if cfg.OvnRundir != "" {
+		log.Info().Str("ovn-rundir", cfg.OvnRundir).Msg("Overriding OVN RunDir")
+		ovnconfig.OvnNorth.RunDir = cfg.OvnRundir
+		ovnconfig.OvnSouth.RunDir = cfg.OvnRundir
+	}
+
+	if cfg.OvsRundir != "" {
+		log.Info().Str("ovs-rundir", cfg.OvsRundir).Msg("Overriding OVS RunDir")
+		ovnconfig.OvsPaths.RunDir = cfg.OvsRundir
+	}
+
+	if cfg.OvsVswitchdPid != "" {
+		log.Info().Str("ovs-vswitchd-pid", cfg.OvsVswitchdPid).Msg("Overriding OVS vswitchd PID file")
+		ovnconfig.OvsPaths.VswitchdPid = cfg.OvsVswitchdPid
+	}
+
+	if cfg.OvsdbServerPid != "" {
+		log.Info().Str("ovsdb-server-pid", cfg.OvsdbServerPid).Msg("Overriding OVSDB server PID file")
+		ovnconfig.OvsPaths.OvsDbServerPid = cfg.OvsdbServerPid
+	}
+
+	if cfg.OvnNbdbLocation != "" {
+		log.Info().Str("ovn-nbdb-location", cfg.OvnNbdbLocation).Msg("Overriding OVN northbound DB location")
+		ovnconfig.OvnNorth.DbLocation = cfg.OvnNbdbLocation
+	}
+
+	if cfg.OvnSbdbLocation != "" {
+		log.Info().Str("ovn-sbdb-location", cfg.OvnSbdbLocation).Msg("Overriding OVN southbound DB location")
+		ovnconfig.OvnSouth.DbLocation = cfg.OvnSbdbLocation
+	}
+
+	// Set environment variables for OVS tools
+	if cfg.OvsRundir != "" {
+		log.Info().Str("OVS_RUNDIR", cfg.OvsRundir).Msg("Setting OVS_RUNDIR environment variable")
+		os.Setenv("OVS_RUNDIR", cfg.OvsRundir)
+	}
+
+	if cfg.OvnRundir != "" {
+		log.Info().Str("OVN_RUNDIR", cfg.OvnRundir).Msg("Setting OVN_RUNDIR environment variable")
+		os.Setenv("OVN_RUNDIR", cfg.OvnRundir)
+	}
+
+	log.Debug().
+		Str("final-ovn-north-rundir", ovnconfig.OvnNorth.RunDir).
+		Str("final-ovn-south-rundir", ovnconfig.OvnSouth.RunDir).
+		Str("final-ovs-rundir", ovnconfig.OvsPaths.RunDir).
+		Str("final-ovs-vswitchd-pid", ovnconfig.OvsPaths.VswitchdPid).
+		Str("final-ovs-dbserver-pid", ovnconfig.OvsPaths.OvsDbServerPid).
+		Str("final-ovn-nb-location", ovnconfig.OvnNorth.DbLocation).
+		Str("final-ovn-sb-location", ovnconfig.OvnSouth.DbLocation).
+		Msg("Final ovn-kubernetes configuration after overrides")
+
 	return nil
 }
 

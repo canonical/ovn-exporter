@@ -26,6 +26,12 @@ func init() {
 	rootCmd.Flags().String("loglevel", "debug", "log level")
 	rootCmd.Flags().String("host", "0.0.0.0", "prometheus server host")
 	rootCmd.Flags().String("port", "9310", "prometheus server port")
+	rootCmd.Flags().String("ovn-rundir", "", "OVN run directory path")
+	rootCmd.Flags().String("ovs-rundir", "", "OVS run directory path")
+	rootCmd.Flags().String("ovs-vswitchd-pid", "", "OVS vswitchd PID file path")
+	rootCmd.Flags().String("ovsdb-server-pid", "", "OVSDB server PID file path")
+	rootCmd.Flags().String("ovn-nbdb-location", "", "OVN northbound database location")
+	rootCmd.Flags().String("ovn-sbdb-location", "", "OVN southbound database location")
 }
 
 func Execute() {
@@ -52,6 +58,10 @@ func run(cmd *cobra.Command, args []string) error {
 	wg := sync.WaitGroup{}
 
 	ovnK8sShim := ovnk8s.NewOvnK8sShim()
+
+	if err := ovnK8sShim.ApplyConfigOverrides(&cfg); err != nil {
+		return err
+	}
 
 	if err := ovnK8sShim.SetExec(); err != nil {
 		return err
