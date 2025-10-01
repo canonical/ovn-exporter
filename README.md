@@ -1,16 +1,20 @@
 # OVN Exporter
 
-## Environment Variables
+OVN Exporter is a Prometheus metrics exporter for OVN (Open Virtual Network) components.
+It provides comprehensive monitoring capabilities for OVN deployments by exposing metrics
+from OVN Northbound and Southbound databases, enabling observability and alerting through
+Prometheus and compatible monitoring systems.
 
-### OVN-Kubernetes Environment Variables
+## 📖 Documentation
 
-The underlying OVN-Kubernetes libraries also read these environment variables directly:
+The OVN Exporter documentation is found in the [docs](./docs) directory. It is
+written in RST format and built with Sphinx.
 
-| Environment Variable | Default Value | Description |
-|---------------------|---------------|-------------|
-| `OVS_RUNDIR` | "/var/run/openvswitch/" | OVS run directory |
-| `OVN_RUNDIR` | "/var/run/ovn/" | OVN run directory |
-| `OVS_VSWITCHD_PID` | "/var/run/openvswitch/ovs-vswitchd.pid" | OVS vSwitchd PID file path |
-| `OVSDB_SERVER_PID` | "/var/run/openvswitch/ovsdb-server.pid" | OVSDB server PID file path |
-| `OVN_NBDB_LOCATION` | "/var/lib/openvswitch/ovnnb_db.db" | OVN northbound database location |
-| `OVN_SBDB_LOCATION` | "/var/lib/openvswitch/ovnsb_db.db" | OVN southbound database location |
+## 💫 Project & community
+
+* [File a bug](https://github.com/canonical/ovn-exporter/issues)
+
+## 📰 License
+
+OVN Exporter is free software, distributed under the AGPLv3 license (GNU Affero
+General Public License version 3.0).
