@@ -1,4 +1,3 @@
-============
 OVN Exporter
 ============
 
@@ -33,10 +32,6 @@ In this documentation
 
 .. grid:: 1 1 2 2
 
-   .. grid-item:: :doc:`Explanation <explanation/index>`
-
-      **Discussion and clarification** of key topics
-
    .. grid-item:: :doc:`Reference <reference/index>`
 
       **Technical information** - specifications, APIs, architecture
@@ -59,12 +54,10 @@ constructive feedback.
    :hidden:
    :maxdepth: 2
 
-   how-to/index
    tutorial/index
-   explanation/index
+   how-to/index
    reference/index
 
 .. LINKS
 .. _Code of conduct: https://ubuntu.com/community/ethos/code-of-conduct
 .. _GitHub: https://github.com/canonical/ovn-exporter
-

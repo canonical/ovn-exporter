@@ -68,26 +68,6 @@ $(ALL_TESTS): build
 
 check-system: $(ALL_TESTS)  ## Run functional test
 
-##@ Documentation
-
-.PHONY: docs docs-serve docs-clean docs-check
-
-docs: ## Build documentation
-	@echo "Building documentation..."
-	@sphinx-build -b html docs/source docs/build/html
-
-docs-serve: docs ## Build and serve documentation at http://localhost:8000
-	@echo "Serving documentation at http://localhost:8000"
-	@cd docs/build/html && python3 -m http.server 8000
-
-docs-clean: ## Clean documentation build artifacts
-	@echo "Cleaning documentation build..."
-	@rm -rf docs/build
-
-docs-check: ## Check documentation for errors
-	@echo "Checking documentation for errors..."
-	@sphinx-build -b linkcheck docs/source docs/build/linkcheck
-
 ##@ Help
 
 .PHONY: help

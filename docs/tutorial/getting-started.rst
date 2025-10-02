@@ -6,14 +6,14 @@ This tutorial will guide you through installing and configuring MicroOVN and OVN
 using snap packages, and setting up the necessary snap connections to enable metrics collection.
 
 Prerequisites
-=============
+-------------
 
 - A system running Ubuntu 20.04 LTS or later
 - Snap daemon installed (pre-installed on Ubuntu)
 - Root or sudo access to the system
 
-Step 1: Install MicroOVN
-=========================
+Install MicroOVN
+----------------
 
 MicroOVN provides a self-contained OVN (Open Virtual Network) deployment with clustering support.
 
@@ -29,8 +29,8 @@ After installation, verify that MicroOVN is installed:
 
    snap list microovn
 
-Step 2: Initialize MicroOVN
-============================
+Initialize MicroOVN
+-------------------
 
 Initialize MicroOVN to set up the OVN cluster:
 
@@ -44,8 +44,8 @@ This will create a single-node cluster. You can verify the cluster status:
 
    sudo microovn.microovn cluster list
 
-Step 3: Install OVN Exporter
-=============================
+Install OVN Exporter
+--------------------
 
 Install the OVN Exporter snap:
 
@@ -59,8 +59,8 @@ After installation, verify that OVN Exporter is installed:
 
    snap list ovn-exporter
 
-Step 4: Connect Snap Interfaces
-================================
+Connect Snap Interfaces
+------------------------
 
 OVN Exporter needs access to MicroOVN's data directories to collect metrics. This is achieved
 through snap content interfaces.
@@ -94,8 +94,8 @@ Check that the interfaces are properly connected:
 
 You should see both ``ovn-chassis`` and ``ovn-central-data`` listed as connected to MicroOVN.
 
-Step 5: Start OVN Exporter
-===========================
+Start OVN Exporter
+------------------
 
 The OVN Exporter service should start automatically after the snap connections are established.
 You can verify its status:
@@ -110,8 +110,8 @@ If the service is not running, start it manually:
 
    sudo snap start ovn-exporter.ovn-exporter
 
-Step 6: Verify Metrics Collection
-==================================
+Verify Metrics Collection
+--------------------------
 
 OVN Exporter exposes Prometheus metrics on port 9310 by default. You can verify that metrics
 are being collected:
@@ -128,8 +128,8 @@ You should see Prometheus-formatted metrics output, including OVN-specific metri
 - ``ovn_northd_*`` - OVN Northd metrics (connection status, logical flow statistics)
 - Standard Go runtime metrics
 
-Step 7: View Logs (Optional)
-=============================
+View Logs (Optional)
+--------------------
 
 If you encounter any issues, you can view the OVN Exporter logs:
 
@@ -144,7 +144,7 @@ To follow logs in real-time:
    snap logs -f ovn-exporter.ovn-exporter
 
 Troubleshooting
-===============
+---------------
 
 Service fails to start
 ----------------------
