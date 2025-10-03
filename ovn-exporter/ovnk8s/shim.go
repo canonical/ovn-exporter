@@ -5,7 +5,9 @@ import (
 	"sync"
 
 	"github.com/canonical/ovn-exporter/ovn-exporter/config"
+	libovsdbclient "github.com/ovn-kubernetes/libovsdb/client"
 	ovnconfig "github.com/ovn-org/ovn-kubernetes/go-controller/pkg/config"
+	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/libovsdb"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/metrics"
 	"github.com/ovn-org/ovn-kubernetes/go-controller/pkg/util"
 	"github.com/rs/zerolog/log"
@@ -15,9 +17,10 @@ import (
 type Register interface {
 	SetExec() error
 	ApplyConfigOverrides(cfg *config.Config) error
-	RegisterOvsMetricsWithOvnMetrics(stopChan <-chan struct{})
+	NewOVSClient(stopChan <-chan struct{}) (libovsdbclient.Client, error)
+	RegisterOvsMetricsWithOvnMetrics(ovsDBClient libovsdbclient.Client, metricsScrapeInterval int, stopChan <-chan struct{})
 	RegisterOvnDBMetrics(stopChan <-chan struct{})
-	RegisterOvnControllerMetrics(stopChan <-chan struct{})
+	RegisterOvnControllerMetrics(ovsDBClient libovsdbclient.Client, metricsScrapeInterval int, stopChan <-chan struct{})
 	RegisterOvnNorthdMetrics(stopChan <-chan struct{})
 	StartOVNMetricsServer(bindAddress, certFile, keyFile string, stopChan <-chan struct{}, wg *sync.WaitGroup)
 }
@@ -38,6 +41,19 @@ func (s *shim) SetExec() error {
 		return err
 	}
 	return nil
+}
+
+func (s *shim) NewOVSClient(stopChan <-chan struct{}) (libovsdbclient.Client, error) {
+	// Construct OVS DB socket path from configured run directory
+	ovsDbSockPath := "unix:" + ovnconfig.OvsPaths.RunDir + "/db.sock"
+
+	cfg := ovnconfig.OvnAuthConfig{
+		Scheme:  ovnconfig.OvnDBSchemeUnix,
+		Address: ovsDbSockPath,
+	}
+
+	log.Debug().Str("ovs-db-socket", ovsDbSockPath).Msg("Creating OVS client")
+	return libovsdb.NewOVSClientWithConfig(cfg, stopChan)
 }
 
 func (s *shim) ApplyConfigOverrides(cfg *config.Config) error {
@@ -119,8 +135,8 @@ func (s *shim) RegisterOvnDBMetrics(stopChan <-chan struct{}) {
 	)
 }
 
-func (s *shim) RegisterOvnControllerMetrics(stopChan <-chan struct{}) {
-	metrics.RegisterOvnControllerMetrics(stopChan)
+func (s *shim) RegisterOvnControllerMetrics(ovsDBClient libovsdbclient.Client, metricsScrapeInterval int, stopChan <-chan struct{}) {
+	metrics.RegisterOvnControllerMetrics(ovsDBClient, metricsScrapeInterval, stopChan)
 }
 
 func (s *shim) RegisterOvnNorthdMetrics(stopChan <-chan struct{}) {
@@ -130,8 +146,8 @@ func (s *shim) RegisterOvnNorthdMetrics(stopChan <-chan struct{}) {
 	)
 }
 
-func (s *shim) RegisterOvsMetricsWithOvnMetrics(stopChan <-chan struct{}) {
-	metrics.RegisterOvsMetricsWithOvnMetrics(stopChan)
+func (s *shim) RegisterOvsMetricsWithOvnMetrics(ovsDBClient libovsdbclient.Client, metricsScrapeInterval int, stopChan <-chan struct{}) {
+	metrics.RegisterOvsMetricsWithOvnMetrics(ovsDBClient, metricsScrapeInterval, stopChan)
 }
 
 func (s *shim) StartOVNMetricsServer(bindAddress, certFile, keyFile string, stopChan <-chan struct{}, wg *sync.WaitGroup) {

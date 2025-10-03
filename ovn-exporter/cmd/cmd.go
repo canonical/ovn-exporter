@@ -67,9 +67,15 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ovnK8sShim.RegisterOvsMetricsWithOvnMetrics(stopChan)
+	// Create OVS DB client for metrics
+	ovsClient, err := ovnK8sShim.NewOVSClient(stopChan)
+	if err != nil {
+		return fmt.Errorf("failed to create OVS client: %w", err)
+	}
+
+	ovnK8sShim.RegisterOvsMetricsWithOvnMetrics(ovsClient, 30, stopChan)
 	ovnK8sShim.RegisterOvnDBMetrics(stopChan)
-	ovnK8sShim.RegisterOvnControllerMetrics(stopChan)
+	ovnK8sShim.RegisterOvnControllerMetrics(ovsClient, 30, stopChan)
 	ovnK8sShim.RegisterOvnNorthdMetrics(stopChan)
 
 	ovnK8sShim.StartOVNMetricsServer(
