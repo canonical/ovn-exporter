@@ -36,6 +36,10 @@ In this documentation
 
       **Technical information** - specifications, APIs, architecture
 
+   .. grid-item:: :doc:`Contributors <contributors/index>`
+
+      **Contribute** to the OVN Exporter project
+
 ---------
 
 Project and community
@@ -57,6 +61,7 @@ constructive feedback.
    tutorial/index
    how-to/index
    reference/index
+   contributors/index
 
 .. LINKS
 .. _Code of conduct: https://ubuntu.com/community/ethos/code-of-conduct
