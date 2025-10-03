@@ -1,2 +1,5 @@
 ovnexporter
 *.snap
+
+# Sphinx documentation
+docs/build/
