@@ -1,38 +1,32 @@
 #!/bin/bash
-
 set -e
 
 # Configuration hook for ovn-exporter snap
-# This hook validates configuration options and restarts the service when needed
+# Validates configuration options without restarting the service
+# Note: Service restarts are handled by connect-plug hooks to avoid
+# hitting systemd rate limits when multiple interfaces connect
 
-# List of supported configuration options
-config_options=(
+# Supported configuration options
+declare -a CONFIG_KEYS=(
 	"ovn-rundir"
 	"ovs-rundir"
-	"ovs-vswitchd-pid"
-	"ovsdb-server-pid"
 	"ovn-nbdb-location"
 	"ovn-sbdb-location"
 )
 
-# Flag to track if any configuration changed
-config_changed=false
-
-# Validate and set default values if needed
-for option in "${config_options[@]}"; do
-	# Get current value
-	current_value=$(snapctl get "$option" 2>/dev/null || echo "")
-
-	if [[ -n $current_value ]]; then
-		config_changed=true
-		break
+# Check if any configuration is set
+has_config=false
+for key in "${CONFIG_KEYS[@]}"; do
+	if value=$(snapctl get "$key" 2>/dev/null) && [[ -n $value ]]; then
+		has_config=true
+		echo "Config set: $key=$value"
 	fi
 done
 
-# Restart service if any configuration changed
-if [[ $config_changed == "true" ]]; then
-	echo "Configuration changes detected, restarting ovn-exporter service"
-	snapctl restart ovn-exporter.ovn-exporter 2>/dev/null || echo "Service restart scheduled"
+# Report configuration status
+if [[ $has_config == "true" ]]; then
+	echo "Configuration validated successfully"
+	echo "Note: Manual config changes require: snap restart ovn-exporter"
 else
-	echo "No configuration changes detected"
+	echo "No configuration set (using defaults)"
 fi

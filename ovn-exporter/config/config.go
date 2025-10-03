@@ -3,15 +3,13 @@ package config
 import "fmt"
 
 type Config struct {
-	LogLevel         string `mapstructure:"loglevel"`
-	Host             string `mapstructure:"host"`
-	Port             string `mapstructure:"port"`
-	OvnRundir        string `mapstructure:"ovn-rundir"`
-	OvsRundir        string `mapstructure:"ovs-rundir"`
-	OvsVswitchdPid   string `mapstructure:"ovs-vswitchd-pid"`
-	OvsdbServerPid   string `mapstructure:"ovsdb-server-pid"`
-	OvnNbdbLocation  string `mapstructure:"ovn-nbdb-location"`
-	OvnSbdbLocation  string `mapstructure:"ovn-sbdb-location"`
+	LogLevel        string `mapstructure:"loglevel"`
+	Host            string `mapstructure:"host"`
+	Port            string `mapstructure:"port"`
+	OvnRundir       string `mapstructure:"ovn-rundir"`
+	OvsRundir       string `mapstructure:"ovs-rundir"`
+	OvnNbdbLocation string `mapstructure:"ovn-nbdb-location"`
+	OvnSbdbLocation string `mapstructure:"ovn-sbdb-location"`
 }
 
 func (c *Config) BindAddress() string {
@@ -19,6 +17,5 @@ func (c *Config) BindAddress() string {
 }
 
 func (c *Config) HasOvnKubernetesOverrides() bool {
-	return c.OvnRundir != "" || c.OvsRundir != "" || c.OvsVswitchdPid != "" ||
-		c.OvsdbServerPid != "" || c.OvnNbdbLocation != "" || c.OvnSbdbLocation != ""
+	return c.OvnRundir != "" || c.OvsRundir != "" || c.OvnNbdbLocation != "" || c.OvnSbdbLocation != ""
 }

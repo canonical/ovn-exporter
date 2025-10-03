@@ -6,5 +6,6 @@ snapctl set "ovn-nbdb-location"="$SNAP_COMMON/data/central/db/ovnnb_db.db"
 snapctl set "ovn-sbdb-location"="$SNAP_COMMON/data/central/db/ovnsb_db.db"
 echo "Set OVN database locations in $SNAP_COMMON/data/central/db/"
 
-# Restart the service to pick up new environment (ignore errors)
-snapctl restart ovn-exporter.ovn-exporter || echo "Service restart failed, continuing..."
+# Explicit restart to ensure service picks up configuration
+# This is queued and will execute after this hook and the configure hook complete
+snapctl restart ovn-exporter.ovn-exporter 2>/dev/null || echo "Service restart scheduled"

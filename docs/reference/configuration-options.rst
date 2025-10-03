@@ -14,12 +14,6 @@ Path Configuration
 ``ovs-rundir``
    OVS run directory path. Override the default location where OVS stores runtime files.
 
-``ovs-vswitchd-pid``
-   Path to the OVS vswitchd PID file. Used to monitor the OVS vswitchd process.
-
-``ovsdb-server-pid``
-   Path to the OVSDB server PID file. Used to monitor the OVSDB server process.
-
 Database Configuration
 ----------------------
 
