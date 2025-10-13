@@ -7,8 +7,9 @@ Prometheus and compatible monitoring systems.
 
 ## 📖 Documentation
 
-The OVN Exporter documentation is found in the [docs](./docs) directory. It is
-written in RST format and built with Sphinx.
+The [OVN Exporter documentation](https://canonical-ovn-exporter.readthedocs-hosted.com/en/latest/)
+is found in the [docs](./docs) directory. It is written in RST format and built with
+Sphinx.
 
 ## 💫 Project & community
 
