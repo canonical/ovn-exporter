@@ -14,14 +14,6 @@ if OVS_RUNDIR=$(snapctl get ovs-rundir 2>/dev/null) && [ -n "$OVS_RUNDIR" ]; the
 	CLI_ARGS+=("--ovs-rundir" "$OVS_RUNDIR")
 fi
 
-if OVS_VSWITCHD_PID=$(snapctl get ovs-vswitchd-pid 2>/dev/null) && [ -n "$OVS_VSWITCHD_PID" ]; then
-	CLI_ARGS+=("--ovs-vswitchd-pid" "$OVS_VSWITCHD_PID")
-fi
-
-if OVSDB_SERVER_PID=$(snapctl get ovsdb-server-pid 2>/dev/null) && [ -n "$OVSDB_SERVER_PID" ]; then
-	CLI_ARGS+=("--ovsdb-server-pid" "$OVSDB_SERVER_PID")
-fi
-
 if OVN_NBDB_LOCATION=$(snapctl get ovn-nbdb-location 2>/dev/null) && [ -n "$OVN_NBDB_LOCATION" ]; then
 	CLI_ARGS+=("--ovn-nbdb-location" "$OVN_NBDB_LOCATION")
 fi

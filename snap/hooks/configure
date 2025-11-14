@@ -9,8 +9,6 @@ set -e
 config_options=(
 	"ovn-rundir"
 	"ovs-rundir"
-	"ovs-vswitchd-pid"
-	"ovsdb-server-pid"
 	"ovn-nbdb-location"
 	"ovn-sbdb-location"
 )

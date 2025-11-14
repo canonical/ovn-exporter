@@ -28,8 +28,6 @@ func init() {
 	rootCmd.Flags().String("port", "9310", "prometheus server port")
 	rootCmd.Flags().String("ovn-rundir", "", "OVN run directory path")
 	rootCmd.Flags().String("ovs-rundir", "", "OVS run directory path")
-	rootCmd.Flags().String("ovs-vswitchd-pid", "", "OVS vswitchd PID file path")
-	rootCmd.Flags().String("ovsdb-server-pid", "", "OVSDB server PID file path")
 	rootCmd.Flags().String("ovn-nbdb-location", "", "OVN northbound database location")
 	rootCmd.Flags().String("ovn-sbdb-location", "", "OVN southbound database location")
 }
@@ -67,9 +65,15 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ovnK8sShim.RegisterOvsMetricsWithOvnMetrics(stopChan)
+	// Create OVS DB client for metrics
+	ovsClient, err := ovnK8sShim.NewOVSClient(stopChan)
+	if err != nil {
+		return fmt.Errorf("failed to create OVS client: %w", err)
+	}
+
+	ovnK8sShim.RegisterOvsMetricsWithOvnMetrics(ovsClient, 30, stopChan)
 	ovnK8sShim.RegisterOvnDBMetrics(stopChan)
-	ovnK8sShim.RegisterOvnControllerMetrics(stopChan)
+	ovnK8sShim.RegisterOvnControllerMetrics(ovsClient, 30, stopChan)
 	ovnK8sShim.RegisterOvnNorthdMetrics(stopChan)
 
 	ovnK8sShim.StartOVNMetricsServer(
