@@ -25,6 +25,7 @@ apps:
     command: bin/ovnexporter-wrapper
     daemon: simple
     restart-condition: always
+    restart-delay: 1s
     environment:
       PATH: "$SNAP/bin:$PATH"
     plugs:

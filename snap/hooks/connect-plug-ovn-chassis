@@ -4,8 +4,6 @@ set -e
 # Set OVS and OVN run directories when ovn-chassis interface is connected
 # Note: ovn-chassis now provides both switch and ovn runtime directories
 snapctl set "ovs-rundir"="$SNAP_COMMON/run/switch/"
-snapctl set "ovs-vswitchd-pid"="$SNAP_COMMON/run/switch/ovs-vswitchd.pid"
-snapctl set "ovsdb-server-pid"="$SNAP_COMMON/run/switch/ovsdb-server.pid"
 snapctl set "ovn-rundir"="$SNAP_COMMON/run/ovn/"
 echo "Set OVS_RUNDIR to $SNAP_COMMON/run/switch/ and OVN_RUNDIR to $SNAP_COMMON/run/ovn/"
 

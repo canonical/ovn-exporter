@@ -23,18 +23,27 @@ function install_ovn_exporter() {
 # Start OVN exporter service
 start_ovn_exporter() {
     local container=$1
-    
+
     echo "# Starting ovn-exporter service in $container" >&3
-    
+
     # Check if service is already active
     if lxc_exec "$container" "snap services ovn-exporter | awk 'NR>1 {print \$3}' | grep -q '^active$'" 2>/dev/null; then
         echo "# ovn-exporter service already active in $container" >&3
         return 0
     fi
-    
+
     # Start the service
     if ! lxc_exec "$container" "snap start ovn-exporter"; then
         echo "# Error: Failed to start ovn-exporter service in $container" >&3
+        echo "# ============================================" >&3
+        echo "# Service status:" >&3
+        echo "# ============================================" >&3
+        lxc_exec "$container" "systemctl status snap.ovn-exporter.ovn-exporter.service" 2>&1 | sed 's/^/# /' >&3
+        echo "# ============================================" >&3
+        echo "# Recent logs (last 200 lines):" >&3
+        echo "# ============================================" >&3
+        lxc_exec "$container" "journalctl -xeu snap.ovn-exporter.ovn-exporter.service -n 200 --no-pager" 2>&1 | sed 's/^/# /' >&3
+        echo "# ============================================" >&3
         return 1
     fi
 }
