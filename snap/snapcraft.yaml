@@ -13,11 +13,11 @@ confinement: strict
 plugs:
   ovn-chassis:
     interface: content
-    content: microovn-run-switch
+    content: ovn-chassis
     target: "$SNAP_COMMON/run"
   ovn-central-data:
     interface: content
-    content: microovn-data-central
+    content: ovn-central-data
     target: "$SNAP_COMMON/data"
 
 apps:
